@@ -1,6 +1,7 @@
 package dbp.hackathon.email;
 
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.SimpleMailMessage;
@@ -13,47 +14,40 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 @Service
-public class EmailService {
+public class EmailService3 {
 
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendSimpleMessage(String to, String subject, String text) {
+    // Método para enviar el correo
+    public void sendSimpleMessage(String to, String subject, String htmlBody) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(subject);
-        message.setText(text);
+        message.setText(htmlBody);
         mailSender.send(message);
     }
 
-    // Método para cargar la plantilla de correo y reemplazar los placeholders
-    public String loadEmailTemplate(String nombre, String nombrePelicula, String fechaFuncion, int cantidadEntradas, double precioTotal, String qr) {
+    // Método para leer el archivo HTML y reemplazar variables
+    public String loadEmailTemplate(String nombre, String nombrePelicula, String fechaFuncion, int cantidadEntradas, double precioTotal, String qr) throws IOException {
+        ClassPathResource resource = new ClassPathResource("/home/luisbarahona/Documents/CreatedByBarahona/Repositories_Code/DBP_Repository/Historial_Hackatones/Hackaton2/Hackathon1-20242/src/main/resources/templates/template.html");
+
         StringBuilder contentBuilder = new StringBuilder();
-        try {
-            // Cargar la plantilla HTML del archivo
-            ClassPathResource resource = new ClassPathResource("/home/luisbarahona/Documents/CreatedByBarahona/Repositories_Code/DBP_Repository/Historial_Hackatones/Hackaton2/Hackathon1-20242/src/main/resources");
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)
-            );
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 contentBuilder.append(line).append("\n");
             }
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "Error al cargar la plantilla de correo";
         }
 
-        // Reemplazar los placeholders con los datos reales
-        String emailBody = contentBuilder.toString();
-        emailBody = emailBody.replace("{{nombre}}", nombre)
+        // Reemplazar las variables dentro del HTML
+        return contentBuilder.toString()
+                .replace("{{nombre}}", nombre)
                 .replace("{{nombrePelicula}}", nombrePelicula)
                 .replace("{{fechaFuncion}}", fechaFuncion)
                 .replace("{{cantidadEntradas}}", String.valueOf(cantidadEntradas))
                 .replace("{{precioTotal}}", String.format("%.2f", precioTotal))
                 .replace("{{qr}}", qr);
-
-        return emailBody;
     }
 }
