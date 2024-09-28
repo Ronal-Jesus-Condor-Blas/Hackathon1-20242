@@ -1,6 +1,8 @@
 package dbp.hackathon.Ticket;
 
+import dbp.hackathon.emailEventos.HelloEmailEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +12,10 @@ public class TicketController {
 
     @Autowired
     private TicketService ticketService;
+
+    //pata mandar correos usando eventos
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @PostMapping
     public ResponseEntity<Ticket> createTicket(@RequestBody TicketRequest request) {
@@ -51,5 +57,13 @@ public class TicketController {
     @GetMapping
     public ResponseEntity<Iterable<Ticket>> getAllTickets() {
         return ResponseEntity.ok(ticketService.findAll());
+    }
+
+    //MANDAR CORREROS CUANDO SE CREA UN NUEVO TICKER, ENL CONTENIDO DEL CORREO SERÍA UN QR CON EL ID DEL SUJETO
+    //FORMA 2: END POINT PUBLICADOR PARA MANDAR EMAILS  (EVENTOS, ASINCRONIA)
+    @PostMapping("/crearEmail")
+    public ResponseEntity<String> sendEmail2(@RequestParam String email) {
+        applicationEventPublisher.publishEvent(new HelloEmailEvent(email));
+        return ResponseEntity.ok("¡Hola mundo 2!");
     }
 }
